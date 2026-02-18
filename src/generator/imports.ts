@@ -20,6 +20,18 @@ import { GenerateMappingData } from "./types";
 import { GeneratorOptions } from "./options";
 import { EmitBlockKind } from "./emit-block";
 
+function toFileModuleSpecifier(moduleSpecifier: string): string {
+  return moduleSpecifier.endsWith(".js")
+    ? moduleSpecifier
+    : `${moduleSpecifier}.js`;
+}
+
+function toIndexModuleSpecifier(moduleSpecifier: string): string {
+  return moduleSpecifier.endsWith("/index.js")
+    ? moduleSpecifier
+    : `${moduleSpecifier}/index.js`;
+}
+
 export function generateTypeGraphQLImport(sourceFile: SourceFile) {
   sourceFile.addImportDeclaration({
     moduleSpecifier: "type-graphql",
@@ -58,18 +70,20 @@ export function generateGraphQLScalarTypeImport(sourceFile: SourceFile) {
 
 export function generateCustomScalarsImport(sourceFile: SourceFile, level = 0) {
   sourceFile.addImportDeclaration({
-    moduleSpecifier:
+    moduleSpecifier: toFileModuleSpecifier(
       (level === 0 ? "./" : "") +
-      path.posix.join(...Array(level).fill(".."), "scalars"),
+        path.posix.join(...Array(level).fill(".."), "scalars"),
+    ),
     namedImports: ["DecimalJSScalar"],
   });
 }
 
 export function generateHelpersFileImport(sourceFile: SourceFile, level = 0) {
   sourceFile.addImportDeclaration({
-    moduleSpecifier:
+    moduleSpecifier: toFileModuleSpecifier(
       (level === 0 ? "./" : "") +
-      path.posix.join(...Array(level).fill(".."), "helpers"),
+        path.posix.join(...Array(level).fill(".."), "helpers"),
+    ),
     namedImports: [
       "transformInfoIntoPrismaArgs",
       "getPrismaFromContext",
@@ -103,7 +117,7 @@ export function generateArgsBarrelFile(
     argsTypeNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(argTypeName => ({
-        moduleSpecifier: `./${argTypeName}`,
+        moduleSpecifier: toFileModuleSpecifier(`./${argTypeName}`),
         namedExports: [argTypeName],
       })),
   );
@@ -117,7 +131,7 @@ export function generateArgsIndexFile(
     typeNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(typeName => ({
-        moduleSpecifier: `./${typeName}/args`,
+        moduleSpecifier: toFileModuleSpecifier(`./${typeName}/args`),
       })),
   );
 }
@@ -130,7 +144,7 @@ export function generateModelsBarrelFile(
     modelNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(modelName => ({
-        moduleSpecifier: `./${modelName}`,
+        moduleSpecifier: toFileModuleSpecifier(`./${modelName}`),
         namedExports: [modelName],
       })),
   );
@@ -144,7 +158,7 @@ export function generateEnumsBarrelFile(
     enumTypeNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(enumTypeName => ({
-        moduleSpecifier: `./${enumTypeName}`,
+        moduleSpecifier: toFileModuleSpecifier(`./${enumTypeName}`),
         namedExports: [enumTypeName],
       })),
   );
@@ -158,7 +172,7 @@ export function generateInputsBarrelFile(
     inputTypeNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(inputTypeName => ({
-        moduleSpecifier: `./${inputTypeName}`,
+        moduleSpecifier: toFileModuleSpecifier(`./${inputTypeName}`),
         namedExports: [inputTypeName],
       })),
   );
@@ -173,12 +187,14 @@ export function generateOutputsBarrelFile(
     outputTypeNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(outputTypeName => ({
-        moduleSpecifier: `./${outputTypeName}`,
+        moduleSpecifier: toFileModuleSpecifier(`./${outputTypeName}`),
         namedExports: [outputTypeName],
       })),
   );
   if (hasSomeArgs) {
-    sourceFile.addExportDeclaration({ moduleSpecifier: `./${argsFolderName}` });
+    sourceFile.addExportDeclaration({
+      moduleSpecifier: toIndexModuleSpecifier(`./${argsFolderName}`),
+    });
   }
 }
 
@@ -189,20 +205,24 @@ export function generateIndexFile(
 ) {
   if (blocksToEmit.includes("enums")) {
     sourceFile.addExportDeclaration({
-      moduleSpecifier: `./${enumsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(`./${enumsFolderName}`),
     });
   }
   if (blocksToEmit.includes("models")) {
     sourceFile.addExportDeclaration({
-      moduleSpecifier: `./${modelsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(`./${modelsFolderName}`),
     });
   }
   if (blocksToEmit.includes("crudResolvers")) {
     sourceFile.addExportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${crudResolversFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(
+        `./${resolversFolderName}/${crudResolversFolderName}`,
+      ),
     });
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${crudResolversFolderName}/resolvers-crud.index`,
+      moduleSpecifier: toFileModuleSpecifier(
+        `./${resolversFolderName}/${crudResolversFolderName}/resolvers-crud.index`,
+      ),
       namespaceImport: "crudResolversImport",
     });
     sourceFile.addVariableStatement({
@@ -218,10 +238,14 @@ export function generateIndexFile(
   }
   if (hasSomeRelations && blocksToEmit.includes("relationResolvers")) {
     sourceFile.addExportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${relationsResolversFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(
+        `./${resolversFolderName}/${relationsResolversFolderName}`,
+      ),
     });
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${relationsResolversFolderName}/resolvers.index`,
+      moduleSpecifier: toFileModuleSpecifier(
+        `./${resolversFolderName}/${relationsResolversFolderName}/resolvers.index`,
+      ),
       namespaceImport: "relationResolversImport",
     });
     sourceFile.addVariableStatement({
@@ -237,18 +261,22 @@ export function generateIndexFile(
   }
   if (blocksToEmit.includes("inputs")) {
     sourceFile.addExportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${inputsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(
+        `./${resolversFolderName}/${inputsFolderName}`,
+      ),
     });
   }
   if (blocksToEmit.includes("outputs")) {
     sourceFile.addExportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${outputsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(
+        `./${resolversFolderName}/${outputsFolderName}`,
+      ),
     });
   }
 
   sourceFile.addExportDeclarations([
-    { moduleSpecifier: `./enhance` },
-    { moduleSpecifier: `./scalars` },
+    { moduleSpecifier: toFileModuleSpecifier(`./enhance`) },
+    { moduleSpecifier: toFileModuleSpecifier(`./scalars`) },
   ]);
   sourceFile.addImportDeclarations([
     {
@@ -290,7 +318,7 @@ export function generateResolversBarrelFile(
     )
     .forEach(({ modelName, resolverName }) => {
       sourceFile.addExportDeclaration({
-        moduleSpecifier: `./${modelName}/${resolverName}`,
+        moduleSpecifier: toFileModuleSpecifier(`./${modelName}/${resolverName}`),
         namedExports: [resolverName],
       });
     });
@@ -307,7 +335,9 @@ export function generateResolversActionsBarrelFile(
       if (actionResolverNames) {
         actionResolverNames.forEach(actionResolverName => {
           sourceFile.addExportDeclaration({
-            moduleSpecifier: `./${modelName}/${actionResolverName}`,
+            moduleSpecifier: toFileModuleSpecifier(
+              `./${modelName}/${actionResolverName}`,
+            ),
             namedExports: [actionResolverName],
           });
         });
@@ -322,16 +352,18 @@ export function generateResolversIndexFile(
 ) {
   if (type === "crud") {
     sourceFile.addExportDeclarations([
-      { moduleSpecifier: `./resolvers-actions.index` },
-      { moduleSpecifier: `./resolvers-crud.index` },
+      { moduleSpecifier: toFileModuleSpecifier(`./resolvers-actions.index`) },
+      { moduleSpecifier: toFileModuleSpecifier(`./resolvers-crud.index`) },
     ]);
   } else {
     sourceFile.addExportDeclarations([
-      { moduleSpecifier: `./resolvers.index` },
+      { moduleSpecifier: toFileModuleSpecifier(`./resolvers.index`) },
     ]);
   }
   if (hasSomeArgs) {
-    sourceFile.addExportDeclarations([{ moduleSpecifier: `./args.index` }]);
+    sourceFile.addExportDeclarations([
+      { moduleSpecifier: toFileModuleSpecifier(`./args.index`) },
+    ]);
   }
 }
 
@@ -350,11 +382,13 @@ function createImportGenerator(elementsDirName: string) {
     for (const elementName of distinctElementsNames) {
       sourceFile.addImportDeclaration({
         moduleSpecifier:
-          (level === 0 ? "./" : "") +
-          path.posix.join(
-            ...Array(level).fill(".."),
-            elementsDirName,
-            elementName,
+          toFileModuleSpecifier(
+            (level === 0 ? "./" : "") +
+              path.posix.join(
+                ...Array(level).fill(".."),
+                elementsDirName,
+                elementName,
+              ),
           ),
         // TODO: refactor to default exports
         // defaultImport: elementName,

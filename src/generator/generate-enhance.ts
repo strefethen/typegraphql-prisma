@@ -11,6 +11,18 @@ import {
 import { DmmfDocument } from "./dmmf/dmmf-document";
 import { DMMF } from "./dmmf/types";
 
+function toFileModuleSpecifier(moduleSpecifier: string): string {
+  return moduleSpecifier.endsWith(".js")
+    ? moduleSpecifier
+    : `${moduleSpecifier}.js`;
+}
+
+function toIndexModuleSpecifier(moduleSpecifier: string): string {
+  return moduleSpecifier.endsWith("/index.js")
+    ? moduleSpecifier
+    : `${moduleSpecifier}/index.js`;
+}
+
 export function generateEnhanceMap(
   sourceFile: SourceFile,
   dmmfDocument: DmmfDocument,
@@ -42,11 +54,15 @@ export function generateEnhanceMap(
 
   if (dmmfDocument.shouldGenerateBlock("crudResolvers")) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${crudResolversFolderName}/resolvers-crud.index`,
+      moduleSpecifier: toFileModuleSpecifier(
+        `./${resolversFolderName}/${crudResolversFolderName}/resolvers-crud.index`,
+      ),
       namespaceImport: "crudResolvers",
     });
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${crudResolversFolderName}/args.index`,
+      moduleSpecifier: toFileModuleSpecifier(
+        `./${resolversFolderName}/${crudResolversFolderName}/args.index`,
+      ),
       namespaceImport: "argsTypes",
     });
     sourceFile.addVariableStatement({
@@ -67,7 +83,9 @@ export function generateEnhanceMap(
       trailingTrivia: "\r\n",
     });
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${crudResolversFolderName}/resolvers-actions.index`,
+      moduleSpecifier: toFileModuleSpecifier(
+        `./${resolversFolderName}/${crudResolversFolderName}/resolvers-actions.index`,
+      ),
       namespaceImport: "actionResolvers",
     });
     sourceFile.addVariableStatement({
@@ -237,7 +255,9 @@ export function generateEnhanceMap(
 
   if (hasRelations && dmmfDocument.shouldGenerateBlock("relationResolvers")) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${relationsResolversFolderName}/resolvers.index`,
+      moduleSpecifier: toFileModuleSpecifier(
+        `./${resolversFolderName}/${relationsResolversFolderName}/resolvers.index`,
+      ),
       namespaceImport: "relationResolvers",
     });
     sourceFile.addVariableStatement({
@@ -367,7 +387,7 @@ export function generateEnhanceMap(
 
   if (dmmfDocument.shouldGenerateBlock("models")) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${modelsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(`./${modelsFolderName}`),
       namespaceImport: "models",
     });
     sourceFile.addVariableStatement({
@@ -435,7 +455,9 @@ export function generateEnhanceMap(
 
   if (dmmfDocument.shouldGenerateBlock("outputs")) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${outputsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(
+        `./${resolversFolderName}/${outputsFolderName}`,
+      ),
       namespaceImport: "outputTypes",
     });
     sourceFile.addVariableStatement({
@@ -497,7 +519,9 @@ export function generateEnhanceMap(
 
   if (dmmfDocument.shouldGenerateBlock("inputs")) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: `./${resolversFolderName}/${inputsFolderName}`,
+      moduleSpecifier: toIndexModuleSpecifier(
+        `./${resolversFolderName}/${inputsFolderName}`,
+      ),
       namespaceImport: "inputTypes",
     });
     sourceFile.addVariableStatement({
