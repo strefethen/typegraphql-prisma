@@ -131,7 +131,7 @@ export function generateArgsIndexFile(
     typeNames
       .sort()
       .map<OptionalKind<ExportDeclarationStructure>>(typeName => ({
-        moduleSpecifier: toFileModuleSpecifier(`./${typeName}/args`),
+        moduleSpecifier: toIndexModuleSpecifier(`./${typeName}/args`),
       })),
   );
 }
